@@ -380,16 +380,20 @@ package away3d.tools.utils
 		
 		private function intersect(x:Number = NaN, y:Number = NaN):void
 		{
-			var pMouse:Vector3D = (isNaN(x) && isNaN(y))? _view.unproject(_view.mouseX, _view.mouseY, 1, Matrix3DUtils.CALCULATION_VECTOR3D) : _view.unproject(x, y, 1, Matrix3DUtils.CALCULATION_VECTOR3D);
+			var rayPosition:Vector3D = (isNaN(x) && isNaN(y))? _view.unproject(_view.mouseX, _view.mouseY, 0) : _view.unproject(x, y, 0);
+			var rayDirection:Vector3D = (isNaN(x) && isNaN(y))? _view.unproject(_view.mouseX, _view.mouseY, 1) : _view.unproject(x, y, 1);
 			
-			var cam:Vector3D = _view.camera.position;
-			var d0:Number = _np.x*cam.x + _np.y*cam.y + _np.z*cam.z - _d;
-			var d1:Number = _np.x*pMouse.x + _np.y*pMouse.y + _np.z*pMouse.z - _d;
-			var m:Number = d1/( d1 - d0 );
+			rayDirection.x = rayDirection.x - rayPosition.x;
+			rayDirection.y = rayDirection.y - rayPosition.y;
+			rayDirection.z = rayDirection.z - rayPosition.z;
 			
-			_intersect.x = pMouse.x + ( cam.x - pMouse.x )*m;
-			_intersect.y = pMouse.y + ( cam.y - pMouse.y )*m;
-			_intersect.z = pMouse.z + ( cam.z - pMouse.z )*m;
+			var nDotV:Number = _np.x * rayDirection.x + _np.y * +rayDirection.y + _np.z * rayDirection.z;
+			var disToPlane:Number = -( _np.x * rayPosition.x + _np.y * rayPosition.y + _np.z * rayPosition.z + _d );
+			var t:Number = disToPlane / nDotV;
+			
+			_intersect.x = rayPosition.x + t * rayDirection.x;
+			_intersect.y = rayPosition.y + t * rayDirection.y;
+			_intersect.z = rayPosition.z + t * rayDirection.z;
 			
 			if (_bSetOffset) {
 				_bSetOffset = false;
